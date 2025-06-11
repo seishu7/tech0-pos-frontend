@@ -2,12 +2,19 @@
 
 import { useState } from "react";
 
+type Product = {
+  PRD_ID: number;
+  CODE: string;
+  NAME: string;
+  PRICE: number;
+};
+
 export default function POSPage() {
   const [code, setCode] = useState("");
-  const [product, setProduct] = useState(null);
+  const [product, setProduct] = useState<Product | null>(null);
   const [error, setError] = useState("");
-  const [list, setList] = useState([]);
-  const [quantities, setQuantities] = useState({});
+  const [list, setList] = useState<Product[]>([]);
+  const [quantities, setQuantities] = useState<{ [code: string]: number }>({});
 
   const handleRead = async () => {
     console.log("🛠 handleRead called");
@@ -39,20 +46,18 @@ export default function POSPage() {
       } else {
         setQuantities({
           ...quantities,
-          [product.CODE]: quantities[product.CODE] + 1,
-        });
+          [product.CODE]: (quantities[product.CODE] || 0) + 1,
+        });        
       }
       setProduct(null);
       setCode("");
     }
   };
 
-  const handleQuantity = (code, delta) => {
+  const handleQuantity = (code: string, delta: number) => {
     const newQty = (quantities[code] || 0) + delta;
     if (newQty <= 0) {
       setList(list.filter((item) => item.CODE !== code));
-      const { [code]: _, ...rest } = quantities;
-      setQuantities(rest);
     } else {
       setQuantities({ ...quantities, [code]: newQty });
     }
@@ -78,12 +83,13 @@ export default function POSPage() {
     setQuantities({});
   };
 
-  const handleRemove = (code) => {
+  const handleRemove = (code: string) => {
     setList(list.filter((item) => item.CODE !== code));
-    const { [code]: _, ...rest } = quantities;
-    setQuantities(rest);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { [code]: _unused, ...rest } = quantities;
+  setQuantities(rest);
+
   };
-  
 
   const total = list.reduce((sum, item) => sum + item.PRICE * (quantities[item.CODE] || 0), 0);
 
